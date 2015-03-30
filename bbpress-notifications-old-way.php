@@ -3,7 +3,7 @@
 Plugin Name: bbPress notifications the old way
 Plugin URI: http://sfndesign.ca
 Description: Stops bbPress from adding forum notifications via BCC email's
-Version: 1.0
+Version: 1.1
 Author: SFNdesign, Curtis McHale
 Author URI: http://sfndesign.ca
 License: GPLv2 or later
@@ -35,6 +35,7 @@ class bbPress_Notifications_Old_Way{
 
 		add_action( 'bbp_new_reply', array( $this, 'old_way_reply' ), 11, 5 );
 		add_action( 'bbp_new_topic', array( $this, 'old_way_topic_notification' ), 11, 4 );
+		add_action( 'phpmailer_init', array( $this, 'clear_bcc' ) );
 
 		// Register hooks that are fired when the plugin is activated, deactivated, and uninstalled, respectively.
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
@@ -43,10 +44,24 @@ class bbPress_Notifications_Old_Way{
 
 	} // construct
 
+	/**
+	 * Force clearing all the BCC's on any email in the system since we are seeing BCC's showing up sometimes
+	 *
+	 * @since 1.1
+	 * @author SFNdesign, Curtis MCHale
+	 *
+	 * @param $phpmailer
+	 * @return mixed
+	 */
+	public function clear_bcc( $phpmailer ){
+		$phpmailer->clearBCCs();
+		return $phpmailer;
+	}
+
 	public function old_way_topic_notification( $topic_id = 0, $forum_id = 0, $anonymous_data = false, $topic_author = 0 ){
 
 		// Bail if subscriptions are turned off
-		if ( !bbp_is_subscriptions_active() ) {
+		if ( ! bbp_is_subscriptions_active() ) {
 			return false;
 		}
 
